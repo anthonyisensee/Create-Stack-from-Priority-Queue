@@ -17,7 +17,6 @@
  *
  *************************************************************************/
 
-import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 
@@ -38,6 +37,7 @@ import java.util.NoSuchElementException;
  *
  *  @author Robert Sedgewick
  *  @author Kevin Wayne
+ *  @aythor Anthony Isensee (changes to integrate a max priority queue into a stack data structure)
  */
 public class Stack<Item> {
     private int N;                     // size of the stack
@@ -47,19 +47,29 @@ public class Stack<Item> {
     private class KeyValuePair implements Comparable<KeyValuePair> {
         Item item;
         int priority;
-        
+
         KeyValuePair(Item i) {
-           // TODO: initialize fields in the new instance 
+           item = i;
+           priority = pq.size();    // will set the priority of the new item as the number of items previously in the priority queue.
+                                    // works well because we would have to have over 2,147,483,647 in the priority queue to cause
+                                    // an error, as opposed to recycling values and moving forward with priority indefinitely
         }
         
         public int compareTo(KeyValuePair b) {
-            // TODO: Implement method 
-            // return -1 if this instance should come before b in sorted order
-            // return +1 if this instance should come after b in sorted order
-            // return 0 if this instance is equivalent to b
-            // Question to answer: which field in KeyValuePair should be used
-            // to order the instances?
-            return 0; // REMOVE
+
+            // note to self: remember that we're returning information on b, not this
+            // if b has a higher priority than this, b should come before.
+            if (b.priority > this.priority) {
+                return -1;  // b must come before this
+            }
+            // if b is smaller than this, b should come after.
+            else if (b.priority < this.priority) {
+                return +1;  // b must come after
+            }
+            // in case they have the same priority (which should <em>NEVER</em> come true in this data structure)
+            else {
+                return 0;
+            }
         }
             
     };
@@ -68,7 +78,9 @@ public class Stack<Item> {
      * Initializes an empty stack.
      */
     public Stack() {
-       // TODO: Implement constructor
+        N = 0;
+        pq = new MaxPQ<KeyValuePair>();
+        currentPriority = pq.size();
     }
 
     /**
@@ -76,8 +88,7 @@ public class Stack<Item> {
      * @return true if this stack is empty; false otherwise
      */
     public boolean isEmpty() {
-        // TODO: return whether stack is empty or not
-        return false;   // remove
+        return pq.isEmpty();
     }
 
     /**
@@ -85,8 +96,7 @@ public class Stack<Item> {
      * @return the number of items in the stack
      */
     public int size() {
-        // TODO: return number of items in stack
-        return 0;
+        return pq.size();
     }
 
     /**
@@ -94,7 +104,7 @@ public class Stack<Item> {
      * @param item the item to add
      */
     public void push(Item item) {
-        // TODO: push a new item on stack
+        pq.insert(new KeyValuePair(item));
     }
 
     /**
@@ -103,8 +113,7 @@ public class Stack<Item> {
      * @throws java.util.NoSuchElementException if this stack is empty
      */
     public Item pop() {
-        // TODO: remove and return top item from stack
-        return null;    // REMOVE
+        return pq.delMax().item;
     }
 
 
@@ -115,8 +124,7 @@ public class Stack<Item> {
      */
     public Item peek() {
         if (isEmpty()) throw new NoSuchElementException("Stack underflow");
-        // TODO: return top item (but don't remove)
-        return null;
+        return pq.max().item;
     }
 
     /**
